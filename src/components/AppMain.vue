@@ -2,19 +2,18 @@
     <main>
 
         <div class="container">
-            <select @change="onChange($event)" class="my-4" ref="select">
-                <option value="all">All</option>
-                <option value="Alien">Alien</option>
-                <option value="Noble Knight">Noble Knight</option>
-                <option value="Melodious">Melodius</option>
-                <option value="Archfiend">Archfiend</option>
-                <option value="Elemental HERO">Elemental HERO</option>
-                <option value="Umi">Umi</option>
-                <option value="ABC">ABC</option>
-                <option value="A.I.">A.I.</option>
-                <option value="@Ignister">@Ignister</option>
-                <option value="Unchained">Unchained</option>
-                <option value="noArch">No Archetype</option>
+            <select @change="queryServer($event)" class="my-4" ref="select">
+                <option value="?num=50&offset">50 Cards</option>
+                <option value="?archetype=Alien">Alien</option>
+                <option value="?archetype=Exodia">Exodia</option>
+                <option value="?archetype=Melodious">Melodius</option>
+                <option value="?archetype=Archfiend">Archfiend</option>
+                <option value="?archetype=Blue-Eyes">Blue Eyes</option>
+                <option value="?archetype=Umi">Umi</option>
+                <option value="?archetype=ABC">ABC</option>
+                <option value="?archetype=A.I.">A.I.</option>
+                <option value="?archetype=@Ignister">@Ignister</option>
+                <option value="?archetype=Unchained">Unchained</option>
             </select>
         </div>
 
@@ -23,8 +22,8 @@
                 <h3 class="al-black">Found {{ dim }} {{ witchWord() }}</h3>
                 <div>
                     <div class="row">
-                        <div v-for="cardData in cardsData" class="col-12 col-sm-6 col-md-4 col-lg-3 col-xxl-2 pb-5" :class="{'d-none': !hasToShow(cardData)}">
-                        <AppCard :cardData="cardData" class="h-100" v-if="hasToShow(cardData)"/>
+                        <div v-for="cardData in cardsData" class="col-12 col-sm-6 col-md-4 col-lg-3 col-xxl-2 pb-5">
+                        <AppCard :cardData="cardData" class="h-100" />
                     </div>
                 </div>
                 </div>
@@ -58,29 +57,6 @@
                         this.cardsData.push({imgSrc: response.data.data[i].card_images[0].image_url, cardName: response.data.data[i].name, cardArchetype: response.data.data[i].archetype});
                 });
             },
-            
-            onChange(e){
-                    this.dim = 0;
-
-                    for(let i = 0; i < this.cardsData.length; i++)
-                        if(e.target.value == this.cardsData[i].cardArchetype)
-                            this.dim++;
-                    
-                },
-
-            hasToShow(cardData){
-                let result = false;
-                let select = this.$refs.select;
-                
-                if(select.value == "all")
-                    result = true;
-                else if(select.value == "noArch" && cardData.cardArchetype == undefined)
-                    result = true;
-                else if(select.value == cardData.cardArchetype)
-                    result = true;
-
-                return result;
-            },
 
             witchWord(){
                 let result = "card";
@@ -89,6 +65,16 @@
                     result += "s";
 
                 return result;
+            },
+
+            queryServer(e){
+                let query = "https://db.ygoprodeck.com/api/v7/cardinfo.php" + e.target.value;
+                this.cardsData = [];
+                axios.get(query).then( (response) => {
+                    this.dim = response.data.data.length;
+                    for(let i = 0; i < response.data.data.length; i++)
+                        this.cardsData.push({imgSrc: response.data.data[i].card_images[0].image_url, cardName: response.data.data[i].name, cardArchetype: response.data.data[i].archetype});
+                });
             }
         },
 
